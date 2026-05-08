@@ -23,12 +23,10 @@ function getSslConfig() {
 async function buildPoolConfig() {
   const parsed = new URL(DATABASE_URL);
   const originalHost = parsed.hostname;
-  let host = originalHost;
 
   try {
     const ipv4 = await dns.promises.lookup(originalHost, { family: 4 });
-    host = ipv4.address;
-    console.log(`[DB] Host resolvido para IPv4: ${originalHost} -> ${host}`);
+    console.log(`[DB] Host resolvido para IPv4: ${originalHost} -> ${ipv4.address}`);
   } catch (error) {
     if (error?.code === "ENOTFOUND" && /^db\..+\.supabase\.co$/i.test(originalHost)) {
       throw new Error(
@@ -44,10 +42,13 @@ async function buildPoolConfig() {
   return {
     user: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
-    host,
+    host: originalHost,
     port: parsed.port ? Number(parsed.port) : 5432,
     database: decodeURIComponent(parsed.pathname.replace(/^\//, "")),
     ssl: getSslConfig(),
+    lookup(hostname, options, callback) {
+      dns.lookup(hostname, { ...options, family: 4 }, callback);
+    },
   };
 }
 
