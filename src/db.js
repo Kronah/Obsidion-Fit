@@ -1,6 +1,11 @@
 const { Pool } = require("pg");
+const dns = require("dns");
 const bcrypt = require("bcryptjs");
 const { createClient } = require("@supabase/supabase-js");
+
+if (typeof dns.setDefaultResultOrder === "function") {
+  dns.setDefaultResultOrder("ipv4first");
+}
 
 const DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
