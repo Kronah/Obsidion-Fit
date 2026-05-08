@@ -59,3 +59,42 @@ Importante: altere essa senha cadastrando outro profissional admin e removendo o
    - `git remote add origin <URL_DO_REPOSITORIO>`
    - `git branch -M main`
    - `git push -u origin main`
+
+## CI no GitHub Actions
+
+Este projeto possui pipeline em `.github/workflows/ci.yml` com:
+
+- Instalação de dependências com `npm ci`
+- Execução de validação com `npm run test`
+
+O workflow roda em push e pull request para a branch `main`.
+
+## Deploy (sugestão prática)
+
+Para deploy simples, use Render, Railway ou VPS com Node 20+.
+
+Checklist de deploy:
+
+1. Definir variáveis de ambiente:
+   - `PORT`
+   - `SESSION_SECRET`
+2. Executar em produção:
+   - `npm ci`
+   - `npm start`
+3. Garantir persistência de arquivos:
+   - banco `data.sqlite`
+   - pasta `src/public/uploads/student-photos`
+
+## Proteção da branch main
+
+Para proteger a `main` no GitHub:
+
+1. Acesse `Settings` do repositório.
+2. Entre em `Branches`.
+3. Em `Branch protection rules`, clique em `Add rule`.
+4. Defina `main` como padrão da regra.
+5. Recomendações:
+   - `Require a pull request before merging`
+   - `Require status checks to pass before merging` (selecionar o workflow `CI`)
+   - `Require linear history` (opcional)
+   - `Restrict who can push to matching branches` (opcional)
