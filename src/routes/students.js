@@ -1,3 +1,36 @@
+const PDFDocument = require("pdfkit");
+// Visualizar detalhes do aluno
+router.get("/students/:id", requireAuth, async (req, res) => {
+  const student = (await query("SELECT * FROM students WHERE id = $1", [Number(req.params.id)])).rows[0];
+  if (!student) {
+    req.flash("error", "Aluno não encontrado.");
+    return res.redirect("/students");
+  }
+  res.render("students/show", { title: `Aluno #${student.id}", student });
+});
+
+// Exportar PDF do aluno
+router.get("/students/:id/pdf", requireAuth, async (req, res) => {
+  const student = (await query("SELECT * FROM students WHERE id = $1", [Number(req.params.id)])).rows[0];
+  if (!student) {
+    return res.status(404).send("Aluno não encontrado");
+  }
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename=aluno_${student.id}.pdf`);
+  const doc = new PDFDocument();
+  doc.pipe(res);
+  doc.fontSize(18).text(`Ficha do Aluno #${student.id}`, { align: "center" });
+  doc.moveDown();
+  doc.fontSize(12);
+  doc.text(`Nome: ${student.full_name}`);
+  doc.text(`Telefone: ${student.phone || "-"}`);
+  doc.text(`Email: ${student.email || "-"}`);
+  doc.text(`Cidade: ${student.address_city || "-"}`);
+  doc.text(`Objetivo: ${student.goal || "-"}`);
+  doc.text(`Notas: ${student.notes || "-"}`);
+  doc.text(`Data de Cadastro: ${student.created_at}`);
+  doc.end();
+});
 const express = require("express");
 const path = require("path");
 const multer = require("multer");

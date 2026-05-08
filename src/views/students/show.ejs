@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <h1>Detalhes do Aluno</h1>
+  <section class="card">
+    <table class="details-table">
+      <tr><th>ID</th><td><%= student.id %></td></tr>
+      <tr><th>Nome</th><td><%= student.full_name %></td></tr>
+      <tr><th>Telefone</th><td><%= student.phone || '-' %></td></tr>
+      <tr><th>Email</th><td><%= student.email || '-' %></td></tr>
+      <tr><th>Cidade</th><td><%= student.address_city || '-' %></td></tr>
+      <tr><th>Objetivo</th><td><%= student.goal || '-' %></td></tr>
+      <tr><th>Notas</th><td><%= student.notes || '-' %></td></tr>
+      <tr><th>Data de Cadastro</th><td><%= student.created_at %></td></tr>
+    </table>
+    <div style="margin-top:2em">
+      <a class="btn" href="/students/<%= student.id %>/pdf" target="_blank">Exportar PDF</a>
+      <a class="btn ghost" href="/students">Voltar</a>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
