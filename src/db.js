@@ -20,9 +20,35 @@ function getSslConfig() {
   return process.env.PGSSL === "disable" ? false : { rejectUnauthorized: false };
 }
 
-async function buildPoolConfig() {
+function getSupabaseProjectRef() {
+  if (!SUPABASE_URL) {
+    return null;
+  }
+
+  try {
+    const host = new URL(SUPABASE_URL).hostname;
+    return host.split(".")[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+function getUserCandidates(configUser) {
+  const projectRef = getSupabaseProjectRef();
+  const candidateList = [configUser, "postgres"];
+
+  if (projectRef) {
+    candidateList.push(`postgres.${projectRef}`);
+  }
+
+  return [...new Set(candidateList.filter(Boolean))];
+}
+
+async function buildPoolConfigs() {
   const parsed = new URL(DATABASE_URL);
   const originalHost = parsed.hostname;
+  const baseUser = decodeURIComponent(parsed.username);
+  const userCandidates = getUserCandidates(baseUser);
 
   try {
     const ipv4 = await dns.promises.lookup(originalHost, { family: 4 });
@@ -39,8 +65,8 @@ async function buildPoolConfig() {
     );
   }
 
-  return {
-    user: decodeURIComponent(parsed.username),
+  return userCandidates.map((user) => ({
+    user,
     password: decodeURIComponent(parsed.password),
     host: originalHost,
     port: parsed.port ? Number(parsed.port) : 5432,
@@ -49,13 +75,37 @@ async function buildPoolConfig() {
     lookup(hostname, options, callback) {
       dns.lookup(hostname, { ...options, family: 4 }, callback);
     },
-  };
+  }));
 }
 
 async function ensurePool() {
   if (!pool) {
-    const config = await buildPoolConfig();
-    pool = new Pool(config);
+    const configs = await buildPoolConfigs();
+    let lastError = null;
+
+    for (const config of configs) {
+      const candidatePool = new Pool(config);
+
+      try {
+        await candidatePool.query("SELECT 1");
+        pool = candidatePool;
+        console.log(`[DB] Conexao com pooler estabelecida usando usuario: ${config.user}`);
+        break;
+      } catch (error) {
+        lastError = error;
+        await candidatePool.end().catch(() => null);
+
+        if (!/tenant or user not found/i.test(error?.message || "")) {
+          throw error;
+        }
+
+        console.warn(`[DB] Usuario ${config.user} rejeitado pelo pooler. Tentando proximo candidato...`);
+      }
+    }
+
+    if (!pool) {
+      throw lastError || new Error("Falha ao conectar no banco de dados.");
+    }
   }
 
   return pool;
