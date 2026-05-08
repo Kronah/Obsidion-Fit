@@ -1,100 +1,99 @@
 # Obsidion Fit - Gerenciador de Treino e Evolucao
 
-Sistema web para academia com autenticacao, cadastro de alunos, acompanhamento de evolucao, geracao de treinos e montagem de dietas.
+Sistema web para academia com autenticacao, cadastro de alunos, acompanhamento de evolucao, geracao de treinos, dieta e upload de fotos.
 
 ## Funcionalidades
 
 - Login com usuario e senha para profissional
-- Area admin em `/admin` para cadastrar profissionais (usuario/senha)
-- Cadastro e edicao de alunos
+- Area admin em `/admin` para cadastrar profissionais
+- Cadastro publico do aluno na pagina inicial
 - Acompanhamento de evolucao por aluno
 - Geracao de treino por aluno
 - Cadastro de dieta por aluno
-- Persistencia local em SQLite
+- Upload de fotos de avaliacao fisica
 
-## Tecnologias
+## Stack atual
 
-- Node.js
-- Express
-- EJS
-- SQLite (better-sqlite3)
-- express-session
+- Node.js + Express + EJS
+- Postgres (via `DATABASE_URL`)
+- Supabase Storage para fotos
+- GitHub Actions CI
+
+## Variaveis de ambiente
+
+Copie `.env.example` para `.env` e preencha:
+
+- `PORT`
+- `SESSION_SECRET`
+- `DATABASE_URL`
+- `PGSSL` (`require` em cloud)
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_STORAGE_BUCKET` (ex: `student-photos`)
 
 ## Como rodar localmente
 
 1. Instale dependencias:
    - `npm install`
-2. Inicie em desenvolvimento:
+2. Configure `.env` com Postgres + Supabase
+3. Inicie em desenvolvimento:
    - `npm run dev`
-3. Ou inicie em modo producao local:
-   - `npm start`
-4. Abra no navegador:
+4. Acesse:
    - `http://localhost:3000`
 
 ## Usuario inicial (seed)
 
-Na primeira execucao, o sistema cria automaticamente:
+Na primeira execucao com banco vazio, o sistema cria automaticamente:
 
 - Usuario: `admin`
 - Senha: `admin123`
 
-Importante: altere essa senha cadastrando outro profissional admin e removendo o uso da conta padrao.
+Troque essa senha apos o primeiro acesso.
 
-## Estrutura principal
+## Deploy 100% online e gratuito (recomendado)
 
-- `src/server.js`: inicializacao do servidor e middlewares
-- `src/db.js`: configuracao do SQLite, tabelas e seed inicial
-- `src/routes/`: rotas de autenticacao, admin, alunos, evolucao, treino e dieta
-- `src/views/`: telas EJS
-- `src/public/css/styles.css`: estilos
+### 1) Supabase (banco + storage)
 
-## Publicar no GitHub depois de testar
+1. Crie um projeto no Supabase (plano free).
+2. Copie:
+   - URL do projeto (`SUPABASE_URL`)
+   - Service Role Key (`SUPABASE_SERVICE_ROLE_KEY`)
+   - Connection string Postgres (`DATABASE_URL`)
+3. Crie o bucket `student-photos` no Storage.
+4. Defina o bucket como publico para exibir imagens direto na interface.
 
-1. Inicialize git (se ainda nao estiver inicializado):
-   - `git init`
-2. Faça commit inicial:
-   - `git add .`
-   - `git commit -m "feat: sistema gerenciador de academia"`
-3. Conecte ao repositório remoto e envie:
-   - `git remote add origin <URL_DO_REPOSITORIO>`
-   - `git branch -M main`
-   - `git push -u origin main`
+### 2) Render (backend web)
+
+1. New Web Service > conectar repositório GitHub.
+2. Build command:
+   - `npm ci`
+3. Start command:
+   - `npm start`
+4. Configure todas as variaveis de ambiente acima.
+5. Deploy.
 
 ## CI no GitHub Actions
 
-Este projeto possui pipeline em `.github/workflows/ci.yml` com:
+Workflow em `.github/workflows/ci.yml`:
 
-- Instalação de dependências com `npm ci`
-- Execução de validação com `npm run test`
+- `npm ci`
+- `npm run test`
 
-O workflow roda em push e pull request para a branch `main`.
+Executa em push e pull request para `main`.
 
-## Deploy (sugestão prática)
+## Estrutura principal
 
-Para deploy simples, use Render, Railway ou VPS com Node 20+.
+- `src/server.js`: bootstrap do app
+- `src/db.js`: conexao Postgres, migracoes e seed
+- `src/routes/`: rotas de auth/admin/alunos/evolucao/treino/dieta
+- `src/views/`: telas EJS
+- `src/public/js/photo-preview.js`: preview das fotos no cadastro
 
-Checklist de deploy:
+## Protecao da branch main
 
-1. Definir variáveis de ambiente:
-   - `PORT`
-   - `SESSION_SECRET`
-2. Executar em produção:
-   - `npm ci`
-   - `npm start`
-3. Garantir persistência de arquivos:
-   - banco `data.sqlite`
-   - pasta `src/public/uploads/student-photos`
+No GitHub (`Settings` > `Rulesets` ou `Branches`), recomendacao minima:
 
-## Proteção da branch main
-
-Para proteger a `main` no GitHub:
-
-1. Acesse `Settings` do repositório.
-2. Entre em `Branches`.
-3. Em `Branch protection rules`, clique em `Add rule`.
-4. Defina `main` como padrão da regra.
-5. Recomendações:
-   - `Require a pull request before merging`
-   - `Require status checks to pass before merging` (selecionar o workflow `CI`)
-   - `Require linear history` (opcional)
-   - `Restrict who can push to matching branches` (opcional)
+- Require a pull request before merging
+- Restrict deletions
+- Require linear history
+- Require status checks to pass (apos o CI aparecer)

@@ -1,21 +1,21 @@
 const express = require("express");
-const db = require("../db");
+const { query } = require("../db");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-router.get("/workouts", requireAuth, (req, res) => {
-  const students = db.prepare("SELECT id, full_name FROM students ORDER BY full_name").all();
+router.get("/workouts", requireAuth, async (req, res) => {
+  const students = (await query("SELECT id, full_name FROM students ORDER BY full_name")).rows;
   const studentId = Number(req.query.student_id || 0);
 
   let selectedStudent = null;
   let workouts = [];
 
   if (studentId) {
-    selectedStudent = db.prepare("SELECT * FROM students WHERE id = ?").get(studentId);
-    workouts = db
-      .prepare("SELECT * FROM workouts WHERE student_id = ? ORDER BY id DESC")
-      .all(studentId);
+    selectedStudent = (await query("SELECT * FROM students WHERE id = $1", [studentId])).rows[0];
+    workouts = (
+      await query("SELECT * FROM workouts WHERE student_id = $1 ORDER BY id DESC", [studentId])
+    ).rows;
   }
 
   res.render("workouts/index", {
@@ -26,7 +26,7 @@ router.get("/workouts", requireAuth, (req, res) => {
   });
 });
 
-router.post("/workouts", requireAuth, (req, res) => {
+router.post("/workouts", requireAuth, async (req, res) => {
   const { student_id, workout_name, workout_date, muscle_group, exercises_json, notes } = req.body;
 
   if (!student_id || !workout_name || !exercises_json) {
@@ -34,18 +34,18 @@ router.post("/workouts", requireAuth, (req, res) => {
     return res.redirect("/workouts");
   }
 
-  db.prepare(
+  await query(
     `INSERT INTO workouts (
       student_id, workout_name, workout_date, muscle_group, exercises_json, notes
-    ) VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(
+    ) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [
     student_id,
     workout_name.trim(),
     workout_date || null,
     muscle_group || null,
     exercises_json,
     notes || null
-  );
+  ]);
 
   req.flash("success", "Treino criado com sucesso.");
   return res.redirect(`/workouts?student_id=${student_id}`);

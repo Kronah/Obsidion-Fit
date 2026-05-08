@@ -1,24 +1,13 @@
 const express = require("express");
-const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
-const db = require("../db");
+const { query, supabase, storageBucket } = require("../db");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-const uploadDir = path.join(__dirname, "..", "public", "uploads", "student-photos");
-fs.mkdirSync(uploadDir, { recursive: true });
-
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, uploadDir),
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname || "").toLowerCase();
-      const safeExt = ext || ".jpg";
-      cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${safeExt}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if ((file.mimetype || "").startsWith("image/")) {
@@ -65,19 +54,20 @@ function normalizeChoiceList(value) {
 function mergePhotoAttachments(extraJsonRaw, filesByField) {
   const attachments = [];
 
-  const pushFile = (field, label) => {
-    const file = filesByField?.[field]?.[0];
-    if (!file) return;
+  const pushFile = (field, label, uploadedFile) => {
+    if (!uploadedFile) return;
     attachments.push({
       tipo: label,
-      nome: file.originalname,
-      caminho: `/uploads/student-photos/${file.filename}`,
+      nome: uploadedFile.originalName,
+      caminho: uploadedFile.publicUrl,
+      storagePath: uploadedFile.storagePath,
+      field,
     });
   };
 
-  pushFile("photo_front", "Frente");
-  pushFile("photo_side", "Lado");
-  pushFile("photo_back", "Costas");
+  pushFile("photo_front", "Frente", filesByField?.photo_front);
+  pushFile("photo_side", "Lado", filesByField?.photo_side);
+  pushFile("photo_back", "Costas", filesByField?.photo_back);
 
   if (!attachments.length) {
     return extraJsonRaw;
@@ -98,6 +88,65 @@ function mergePhotoAttachments(extraJsonRaw, filesByField) {
 
   parsed.avaliacaoFisica.fotosArquivos = attachments;
   return JSON.stringify(parsed, null, 2);
+}
+
+async function uploadPhotoAttachments(filesByField = {}, studentName = "aluno") {
+  const hasAnyFile =
+    (filesByField?.photo_front && filesByField.photo_front.length) ||
+    (filesByField?.photo_side && filesByField.photo_side.length) ||
+    (filesByField?.photo_back && filesByField.photo_back.length);
+
+  if (!hasAnyFile) {
+    return { photo_front: null, photo_side: null, photo_back: null };
+  }
+
+  if (!supabase) {
+    throw new Error("Supabase não configurado para upload de fotos.");
+  }
+
+  const attachments = [];
+
+  const uploadOne = async (field, label) => {
+    const file = filesByField?.[field]?.[0];
+    if (!file) return;
+
+    const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
+    const safeName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    const folder = String(studentName || "aluno")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    const storagePath = `${folder || "aluno"}/${safeName}`;
+
+    const { error } = await supabase.storage.from(storageBucket).upload(storagePath, file.buffer, {
+      contentType: file.mimetype,
+      upsert: false,
+    });
+
+    if (error) {
+      throw new Error(`Falha ao enviar foto ${label.toLowerCase()}: ${error.message}`);
+    }
+
+    const { data } = supabase.storage.from(storageBucket).getPublicUrl(storagePath);
+
+    attachments.push({
+      originalName: file.originalname,
+      publicUrl: data.publicUrl,
+      storagePath,
+      label,
+      field,
+    });
+  };
+
+  await uploadOne("photo_front", "Frente");
+  await uploadOne("photo_side", "Lado");
+  await uploadOne("photo_back", "Costas");
+
+  return {
+    photo_front: attachments.find((item) => item.field === "photo_front") || null,
+    photo_side: attachments.find((item) => item.field === "photo_side") || null,
+    photo_back: attachments.find((item) => item.field === "photo_back") || null,
+  };
 }
 
 function extractPhotoAttachments(extraJsonRaw) {
@@ -319,14 +368,14 @@ function upsertStudent(data, studentId = null) {
     data.stress_level,
     data.dietary_habits,
     data.water_intake_liters,
-    data.consent_terms,
-    data.lgpd_consent,
+    Boolean(data.consent_terms),
+    Boolean(data.lgpd_consent),
     data.notes,
     data.extra_json,
   ];
 
   if (!studentId) {
-    db.prepare(
+    return query(
       `INSERT INTO students (
         full_name, phone, whatsapp, email, birth_date, gender, profession,
         address_city, address_state, emergency_contact_name, emergency_contact_phone,
@@ -335,24 +384,25 @@ function upsertStudent(data, studentId = null) {
         pain_points, physical_restrictions, blood_pressure_history, heart_disease_history,
         diabetes_history, family_history, smoking_status, alcohol_status, sleep_hours, stress_level,
         dietary_habits, water_intake_liters, consent_terms, lgpd_consent, notes, extra_json
-      ) VALUES (${params.map(() => "?").join(", ")})`
-    ).run(...params);
-    return;
+      ) VALUES (${params.map((_, index) => `$${index + 1}`).join(", ")})`,
+      params
+    );
   }
 
-  db.prepare(
+  return query(
     `UPDATE students SET
-      full_name = ?, phone = ?, whatsapp = ?, email = ?, birth_date = ?, gender = ?,
-      profession = ?, address_city = ?, address_state = ?, emergency_contact_name = ?,
-      emergency_contact_phone = ?, height_cm = ?,
-      initial_weight_kg = ?, goal = ?, training_experience = ?, available_days = ?, preferred_shift = ?,
-      medical_conditions = ?, medications = ?, allergies = ?, injuries_history = ?, surgeries_history = ?,
-      pain_points = ?, physical_restrictions = ?, blood_pressure_history = ?, heart_disease_history = ?,
-      diabetes_history = ?, family_history = ?, smoking_status = ?, alcohol_status = ?, sleep_hours = ?,
-      stress_level = ?, dietary_habits = ?, water_intake_liters = ?, consent_terms = ?, lgpd_consent = ?,
-      notes = ?, extra_json = ?
-    WHERE id = ?`
-  ).run(...params, studentId);
+      full_name = $1, phone = $2, whatsapp = $3, email = $4, birth_date = $5, gender = $6,
+      profession = $7, address_city = $8, address_state = $9, emergency_contact_name = $10,
+      emergency_contact_phone = $11, height_cm = $12,
+      initial_weight_kg = $13, goal = $14, training_experience = $15, available_days = $16, preferred_shift = $17,
+      medical_conditions = $18, medications = $19, allergies = $20, injuries_history = $21, surgeries_history = $22,
+      pain_points = $23, physical_restrictions = $24, blood_pressure_history = $25, heart_disease_history = $26,
+      diabetes_history = $27, family_history = $28, smoking_status = $29, alcohol_status = $30, sleep_hours = $31,
+      stress_level = $32, dietary_habits = $33, water_intake_liters = $34, consent_terms = $35, lgpd_consent = $36,
+      notes = $37, extra_json = $38
+    WHERE id = $39`,
+    [...params, Number(studentId)]
+  );
 }
 
 router.get("/", (req, res) => {
@@ -363,41 +413,43 @@ router.get("/", (req, res) => {
   });
 });
 
-router.post(
-  "/student-registration",
-  studentPhotoUploadMiddleware,
-  (req, res) => {
-  const selectedGoals = normalizeChoiceList(req.body.main_goals);
-  const payload = mapStudentPayload(req.body);
+router.post("/student-registration", studentPhotoUploadMiddleware, async (req, res) => {
+  try {
+    const selectedGoals = normalizeChoiceList(req.body.main_goals);
+    const payload = mapStudentPayload(req.body);
 
-  if (!payload.full_name || !payload.phone || !payload.email || !payload.birth_date) {
-    req.flash(
-      "error",
-      "Preencha os campos essenciais: nome, telefone, e-mail e data de nascimento."
-    );
+    if (!payload.full_name || !payload.phone || !payload.email || !payload.birth_date) {
+      req.flash(
+        "error",
+        "Preencha os campos essenciais: nome, telefone, e-mail e data de nascimento."
+      );
+      return res.redirect("/");
+    }
+
+    if (!selectedGoals) {
+      req.flash("error", "Selecione pelo menos 1 opção em Objetivo com o treino.");
+      return res.redirect("/");
+    }
+
+    if (!payload.consent_terms || !payload.lgpd_consent) {
+      req.flash("error", "É obrigatório aceitar os termos e o consentimento LGPD.");
+      return res.redirect("/");
+    }
+
+    const uploaded = await uploadPhotoAttachments(req.files, payload.full_name);
+    payload.extra_json = mergePhotoAttachments(payload.extra_json, uploaded);
+
+    await upsertStudent(payload);
+    req.flash("success", "Cadastro enviado com sucesso. Sua ficha foi registrada.");
+    return res.redirect("/");
+  } catch (error) {
+    req.flash("error", `Erro ao salvar cadastro: ${error.message}`);
     return res.redirect("/");
   }
+});
 
-  if (!selectedGoals) {
-    req.flash("error", "Selecione pelo menos 1 opção em Objetivo com o treino.");
-    return res.redirect("/");
-  }
-
-  if (!payload.consent_terms || !payload.lgpd_consent) {
-    req.flash("error", "É obrigatório aceitar os termos e o consentimento LGPD.");
-    return res.redirect("/");
-  }
-
-  payload.extra_json = mergePhotoAttachments(payload.extra_json, req.files);
-
-  upsertStudent(payload);
-  req.flash("success", "Cadastro enviado com sucesso. Sua ficha foi registrada.");
-  return res.redirect("/");
-}
-);
-
-router.get("/students", requireAuth, (req, res) => {
-  const students = db.prepare("SELECT * FROM students ORDER BY id DESC").all();
+router.get("/students", requireAuth, async (req, res) => {
+  const students = (await query("SELECT * FROM students ORDER BY id DESC")).rows;
   res.render("students/index", { title: "Alunos", students });
 });
 
@@ -410,7 +462,7 @@ router.get("/students/new", requireAuth, (req, res) => {
   });
 });
 
-router.post("/students", requireAuth, (req, res) => {
+router.post("/students", requireAuth, async (req, res) => {
   const payload = mapStudentPayload(req.body);
 
   if (!payload.full_name) {
@@ -418,14 +470,14 @@ router.post("/students", requireAuth, (req, res) => {
     return res.redirect("/students/new");
   }
 
-  upsertStudent(payload);
+  await upsertStudent(payload);
 
   req.flash("success", "Aluno cadastrado com sucesso.");
   res.redirect("/students");
 });
 
-router.get("/students/:id/edit", requireAuth, (req, res) => {
-  const student = db.prepare("SELECT * FROM students WHERE id = ?").get(req.params.id);
+router.get("/students/:id/edit", requireAuth, async (req, res) => {
+  const student = (await query("SELECT * FROM students WHERE id = $1", [Number(req.params.id)])).rows[0];
 
   if (!student) {
     req.flash("error", "Aluno não encontrado.");
@@ -440,7 +492,7 @@ router.get("/students/:id/edit", requireAuth, (req, res) => {
   });
 });
 
-router.post("/students/:id", requireAuth, (req, res) => {
+router.post("/students/:id", requireAuth, async (req, res) => {
   const payload = mapStudentPayload(req.body);
 
   if (!payload.full_name) {
@@ -448,14 +500,14 @@ router.post("/students/:id", requireAuth, (req, res) => {
     return res.redirect(`/students/${req.params.id}/edit`);
   }
 
-  upsertStudent(payload, req.params.id);
+  await upsertStudent(payload, req.params.id);
 
   req.flash("success", "Aluno atualizado com sucesso.");
   res.redirect("/students");
 });
 
-router.post("/students/:id/delete", requireAuth, (req, res) => {
-  db.prepare("DELETE FROM students WHERE id = ?").run(req.params.id);
+router.post("/students/:id/delete", requireAuth, async (req, res) => {
+  await query("DELETE FROM students WHERE id = $1", [Number(req.params.id)]);
   req.flash("success", "Aluno removido com sucesso.");
   res.redirect("/students");
 });

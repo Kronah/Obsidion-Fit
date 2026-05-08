@@ -2,8 +2,7 @@ const path = require("path");
 const express = require("express");
 const session = require("express-session");
 const flash = require("connect-flash");
-
-require("./db");
+const { initDb } = require("./db");
 
 const authRoutes = require("./routes/auth");
 const dashboardRoutes = require("./routes/dashboard");
@@ -51,6 +50,15 @@ app.use((req, res) => {
   res.status(404).render("not-found", { title: "Não encontrado" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor iniciado em http://localhost:${PORT}`);
+async function startServer() {
+  await initDb();
+
+  app.listen(PORT, () => {
+    console.log(`Servidor iniciado em http://localhost:${PORT}`);
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Falha ao iniciar servidor:", error.message);
+  process.exit(1);
 });

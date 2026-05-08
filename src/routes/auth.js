@@ -1,6 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const db = require("../db");
+const { query } = require("../db");
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.get("/login", (req, res) => {
   return res.render("auth/login", { title: "Login" });
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -20,11 +20,12 @@ router.post("/login", (req, res) => {
     return res.redirect("/login");
   }
 
-  const professional = db
-    .prepare("SELECT * FROM professionals WHERE username = ?")
-    .get(username.trim());
+  const result = await query("SELECT * FROM professionals WHERE username = $1", [
+    username.trim(),
+  ]);
+  const professional = result.rows[0];
 
-  if (!professional || !bcrypt.compareSync(password, professional.password_hash)) {
+  if (!professional || !(await bcrypt.compare(password, professional.password_hash))) {
     req.flash("error", "Usuário ou senha inválidos.");
     return res.redirect("/login");
   }
@@ -33,7 +34,7 @@ router.post("/login", (req, res) => {
     id: professional.id,
     username: professional.username,
     full_name: professional.full_name,
-    is_admin: professional.is_admin === 1,
+    is_admin: professional.is_admin === true,
   };
 
   req.flash("success", `Bem-vindo, ${professional.full_name}.`);
