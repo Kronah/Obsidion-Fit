@@ -7,9 +7,11 @@ if (typeof dns.setDefaultResultOrder === "function") {
   dns.setDefaultResultOrder("ipv4first");
 }
 
-const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  throw new Error("DATABASE_URL não configurada. Configure para usar Postgres online.");
+  throw new Error(
+    "DATABASE_URL nao configurada. Configure DATABASE_POOLER_URL (recomendado em cloud) ou DATABASE_URL para usar Postgres online."
+  );
 }
 
 let pool = null;
@@ -28,6 +30,12 @@ async function buildPoolConfig() {
     host = ipv4.address;
     console.log(`[DB] Host resolvido para IPv4: ${originalHost} -> ${host}`);
   } catch (error) {
+    if (error?.code === "ENOTFOUND" && /^db\..+\.supabase\.co$/i.test(originalHost)) {
+      throw new Error(
+        "Host direto do Supabase sem registro IPv4 detectado. No Render, use DATABASE_POOLER_URL com a URI de Connection Pooling (porta 6543)."
+      );
+    }
+
     console.warn(
       `[DB] Nao foi possivel resolver IPv4 para ${originalHost}. Tentando host original. (${error.code || "erro_desconhecido"})`
     );

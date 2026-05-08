@@ -25,11 +25,18 @@ Copie `.env.example` para `.env` e preencha:
 
 - `PORT`
 - `SESSION_SECRET`
+- `DATABASE_POOLER_URL` (recomendado em cloud/Render)
 - `DATABASE_URL`
 - `PGSSL` (`require` em cloud)
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_STORAGE_BUCKET` (ex: `student-photos`)
+
+Observacao importante para Render:
+
+- Use a string de Connection Pooling do Supabase em `DATABASE_POOLER_URL` (normalmente porta `6543`).
+- Mantenha `DATABASE_URL` apenas como fallback/local, se quiser.
+- Se usar host `db.<project-ref>.supabase.co` direto, pode falhar em ambientes sem rota IPv6.
 
 ## Como rodar localmente
 
@@ -58,7 +65,8 @@ Troque essa senha apos o primeiro acesso.
 2. Copie:
    - URL do projeto (`SUPABASE_URL`)
    - Service Role Key (`SUPABASE_SERVICE_ROLE_KEY`)
-   - Connection string Postgres (`DATABASE_URL`)
+   - Connection Pooling URI (`DATABASE_POOLER_URL`) para cloud
+   - Connection string direta (`DATABASE_URL`) opcional para uso local
 3. Crie o bucket `student-photos` no Storage.
 4. Defina o bucket como publico para exibir imagens direto na interface.
 
