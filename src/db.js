@@ -12,10 +12,45 @@ if (!DATABASE_URL) {
   throw new Error("DATABASE_URL não configurada. Configure para usar Postgres online.");
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: process.env.PGSSL === "disable" ? false : { rejectUnauthorized: false },
-});
+let pool = null;
+
+function getSslConfig() {
+  return process.env.PGSSL === "disable" ? false : { rejectUnauthorized: false };
+}
+
+async function buildPoolConfig() {
+  const parsed = new URL(DATABASE_URL);
+  const originalHost = parsed.hostname;
+  let host = originalHost;
+
+  try {
+    const ipv4 = await dns.promises.lookup(originalHost, { family: 4 });
+    host = ipv4.address;
+    console.log(`[DB] Host resolvido para IPv4: ${originalHost} -> ${host}`);
+  } catch (error) {
+    console.warn(
+      `[DB] Nao foi possivel resolver IPv4 para ${originalHost}. Tentando host original. (${error.code || "erro_desconhecido"})`
+    );
+  }
+
+  return {
+    user: decodeURIComponent(parsed.username),
+    password: decodeURIComponent(parsed.password),
+    host,
+    port: parsed.port ? Number(parsed.port) : 5432,
+    database: decodeURIComponent(parsed.pathname.replace(/^\//, "")),
+    ssl: getSslConfig(),
+  };
+}
+
+async function ensurePool() {
+  if (!pool) {
+    const config = await buildPoolConfig();
+    pool = new Pool(config);
+  }
+
+  return pool;
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -27,7 +62,8 @@ const supabase =
     : null;
 
 async function query(text, params = []) {
-  const result = await pool.query(text, params);
+  const activePool = await ensurePool();
+  const result = await activePool.query(text, params);
   return result;
 }
 
@@ -145,6 +181,7 @@ async function seedAdmin() {
 }
 
 async function initDb() {
+  await ensurePool();
   await migrate();
   await seedAdmin();
 }
@@ -152,7 +189,7 @@ async function initDb() {
 module.exports = {
   initDb,
   query,
-  pool,
+  getPool: () => pool,
   supabase,
   storageBucket: STORAGE_BUCKET,
 };

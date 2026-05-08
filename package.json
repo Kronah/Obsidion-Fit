@@ -4,8 +4,8 @@
   "description": "Sistema web para gerenciar alunos, evolucao, treinos e dietas de academia",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "dev": "nodemon --exec \"node --dns-result-order=ipv4first\" src/server.js",
+    "start": "node --dns-result-order=ipv4first src/server.js",
     "test": "echo \"No tests configured yet\""
   },
   "keywords": [],
