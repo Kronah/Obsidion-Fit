@@ -1,0 +1,18 @@
+<% if (currentUser) { %>
+<header class="topbar">
+  <div class="brand">Obsidion Fit</div>
+  <nav>
+    <a href="/dashboard">Painel</a>
+    <a href="/students">Alunos</a>
+    <a href="/progress">Acompanhar Aluno</a>
+    <a href="/workouts">Gerar Treino</a>
+    <a href="/diets">Dieta</a>
+    <% if (currentUser.is_admin) { %>
+      <a href="/admin">Admin</a>
+    <% } %>
+  </nav>
+  <form method="post" action="/logout">
+    <button class="btn danger" type="submit">Sair</button>
+  </form>
+</header>
+<% } %>

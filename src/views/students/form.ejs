@@ -1,0 +1,39 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <h1><%= student ? 'Editar Aluno' : 'Novo Aluno' %></h1>
+  <%- include('../partials/flashes') %>
+
+  <% if (student && photoAttachments && photoAttachments.length) { %>
+    <section class="card">
+      <h2>Fotos anexadas do aluno</h2>
+      <div class="photo-gallery">
+        <% photoAttachments.forEach(function(photo) { %>
+          <a class="photo-thumb" href="<%= photo.caminho %>" target="_blank" rel="noopener noreferrer">
+            <img src="<%= photo.caminho %>" alt="Foto <%= photo.tipo || 'anexada' %>" loading="lazy" />
+            <span><%= photo.tipo || 'Foto' %></span>
+          </a>
+        <% }) %>
+      </div>
+    </section>
+  <% } %>
+
+  <section class="card">
+    <form method="post" action="<%= action %>" class="form-grid form-2cols">
+      <%- include('./_fields', { student: student, publicMode: false }) %>
+      <label class="checkbox full">
+        <input type="checkbox" name="consent_terms" value="1" <%= student?.consent_terms ? 'checked' : '' %> />
+        Confirmo ciência dos termos de acompanhamento físico.
+      </label>
+      <label class="checkbox full">
+        <input type="checkbox" name="lgpd_consent" value="1" <%= student?.lgpd_consent ? 'checked' : '' %> />
+        Autorizo o uso dos meus dados para acompanhamento profissional.
+      </label>
+      <button class="btn" type="submit">Salvar</button>
+      <a class="btn ghost" href="/students">Cancelar</a>
+    </form>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

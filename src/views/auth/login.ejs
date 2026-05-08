@@ -1,0 +1,23 @@
+<%- include('../partials/head') %>
+
+<main class="auth-page">
+  <section class="card auth-card">
+    <h1>Login do Profissional</h1>
+    <p>Acesse o sistema para gerenciar alunos, treinos e dietas.</p>
+    <%- include('../partials/flashes') %>
+    <form method="post" action="/login" class="form-grid">
+      <label>
+        Usuário
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Senha
+        <input type="password" name="password" required />
+      </label>
+      <button class="btn" type="submit">Entrar</button>
+    </form>
+    <small></small>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

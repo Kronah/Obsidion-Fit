@@ -1,0 +1,80 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <h1>Gerar Treino</h1>
+  <%- include('../partials/flashes') %>
+
+  <section class="card">
+    <form method="get" action="/workouts" class="form-grid">
+      <label>
+        Selecionar aluno
+        <select name="student_id" required>
+          <option value="">-- selecione --</option>
+          <% students.forEach(function(s) { %>
+            <option value="<%= s.id %>" <%= selectedStudent && selectedStudent.id === s.id ? 'selected' : '' %>>
+              <%= s.full_name %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+      <button class="btn" type="submit">Carregar</button>
+    </form>
+  </section>
+
+  <% if (selectedStudent) { %>
+    <section class="card">
+      <h2>Novo treino - <%= selectedStudent.full_name %></h2>
+      <form method="post" action="/workouts" class="form-grid form-2cols">
+        <input type="hidden" name="student_id" value="<%= selectedStudent.id %>" />
+        <label>
+          Nome do treino *
+          <input type="text" name="workout_name" placeholder="Treino A" required />
+        </label>
+        <label>
+          Data
+          <input type="date" name="workout_date" />
+        </label>
+        <label class="full">
+          Grupo muscular
+          <input type="text" name="muscle_group" placeholder="Peito, tríceps" />
+        </label>
+        <label class="full">
+          Exercícios (JSON/texto com séries, repetições, carga, descanso) *
+          <textarea name="exercises_json" rows="6" required placeholder='[{"exercicio":"Supino","series":4,"repeticoes":"8-10","carga":"60kg","descanso":"90s"}]'></textarea>
+        </label>
+        <label class="full">
+          Observações
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <button class="btn" type="submit">Salvar treino</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Treinos cadastrados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Data</th>
+            <th>Grupo muscular</th>
+            <th>Exercícios</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% workouts.forEach(function(workout) { %>
+            <tr>
+              <td><%= workout.workout_name %></td>
+              <td><%= workout.workout_date || '-' %></td>
+              <td><%= workout.muscle_group || '-' %></td>
+              <td><pre><%= workout.exercises_json %></pre></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

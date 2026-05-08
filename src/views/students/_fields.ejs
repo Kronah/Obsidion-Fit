@@ -1,0 +1,356 @@
+<div class="form-section">
+  <h3>1. Dados básicos</h3>
+  <div class="form-grid form-2cols">
+    <label>
+      Nome completo *
+      <input type="text" name="full_name" required value="<%= student?.full_name || '' %>" />
+    </label>
+    <label>
+      Data de nascimento *
+      <input type="date" name="birth_date" required value="<%= student?.birth_date || '' %>" />
+    </label>
+    <label>
+      Sexo
+      <input type="text" name="gender" value="<%= student?.gender || '' %>" />
+    </label>
+    <label>
+      Profissão
+      <input type="text" name="profession" value="<%= student?.profession || '' %>" />
+    </label>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>2. Contato e localização</h3>
+  <div class="form-grid form-2cols">
+    <label>
+      Telefone *
+      <input type="text" name="phone" required value="<%= student?.phone || '' %>" />
+    </label>
+    <label>
+      WhatsApp
+      <input type="text" name="whatsapp" value="<%= student?.whatsapp || '' %>" />
+    </label>
+    <label>
+      E-mail *
+      <input type="email" name="email" required value="<%= student?.email || '' %>" />
+    </label>
+    <label>
+      Cidade *
+      <input type="text" name="address_city" required value="<%= student?.address_city || '' %>" />
+    </label>
+    <label>
+      Estado *
+      <input type="text" name="address_state" required value="<%= student?.address_state || '' %>" />
+    </label>
+    <label>
+      Contato de emergência
+      <input type="text" name="emergency_contact_name" value="<%= student?.emergency_contact_name || '' %>" />
+    </label>
+    <label>
+      Telefone de emergência
+      <input type="text" name="emergency_contact_phone" value="<%= student?.emergency_contact_phone || '' %>" />
+    </label>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>3. Objetivo com o treino</h3>
+  <div class="option-group">
+    <p>Principal objetivo:</p>
+    <small>Marque pelo menos 1 opção.</small>
+    <div class="option-grid">
+      <label class="choice"><input type="checkbox" name="main_goals" value="Emagrecimento" /> Emagrecimento</label>
+      <label class="choice"><input type="checkbox" name="main_goals" value="Ganho de massa muscular" /> Ganho de massa muscular</label>
+      <label class="choice"><input type="checkbox" name="main_goals" value="Definição" /> Definição</label>
+      <label class="choice"><input type="checkbox" name="main_goals" value="Condicionamento físico" /> Condicionamento físico</label>
+      <label class="choice"><input type="checkbox" name="main_goals" value="Saúde/qualidade de vida" /> Saúde/qualidade de vida</label>
+      <label class="choice"><input type="checkbox" name="main_goals" value="Outro" /> Outro</label>
+    </div>
+    <label>
+      Outro objetivo
+      <input type="text" name="goal_other" placeholder="Descreva se selecionou outro" />
+    </label>
+  </div>
+
+  <div class="option-group">
+    <p>Região que deseja melhorar:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="checkbox" name="target_regions" value="Glúteos" /> Glúteos</label>
+      <label class="choice"><input type="checkbox" name="target_regions" value="Abdômen" /> Abdômen</label>
+      <label class="choice"><input type="checkbox" name="target_regions" value="Pernas" /> Pernas</label>
+      <label class="choice"><input type="checkbox" name="target_regions" value="Braços" /> Braços</label>
+      <label class="choice"><input type="checkbox" name="target_regions" value="Corpo todo" /> Corpo todo</label>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>4. Histórico de treino</h3>
+  <div class="option-group">
+    <p>Você já treinou musculação?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="trained_before" value="Nunca" /> Nunca</label>
+      <label class="choice"><input type="radio" name="trained_before" value="Já treinei mas parei" /> Já treinei mas parei</label>
+      <label class="choice"><input type="radio" name="trained_before" value="Treino atualmente" /> Treino atualmente</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Nível:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="training_level" value="Iniciante (0-6 meses)" /> Iniciante (0-6 meses)</label>
+      <label class="choice"><input type="radio" name="training_level" value="Intermediária (6 meses-2 anos)" /> Intermediária (6 meses-2 anos)</label>
+      <label class="choice"><input type="radio" name="training_level" value="Avançada (+2 anos)" /> Avançada (+2 anos)</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Dias por semana disponíveis:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="days_per_week" value="3" /> 3</label>
+      <label class="choice"><input type="radio" name="days_per_week" value="4" /> 4</label>
+      <label class="choice"><input type="radio" name="days_per_week" value="5" /> 5</label>
+      <label class="choice"><input type="radio" name="days_per_week" value="6" /> 6</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Local de treino:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="training_location" value="Academia" /> Academia</label>
+      <label class="choice"><input type="radio" name="training_location" value="Casa" /> Casa</label>
+      <label class="choice"><input type="radio" name="training_location" value="Ambos" /> Ambos</label>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>5. Saúde</h3>
+  <div class="option-group">
+    <p>Possui algum problema de saúde?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="has_health_problem" value="Não" /> Não</label>
+      <label class="choice"><input type="radio" name="has_health_problem" value="Sim" /> Sim</label>
+    </div>
+    <label>
+      Se sim, qual?
+      <input type="text" name="health_problem_desc" />
+    </label>
+  </div>
+
+  <div class="option-group">
+    <p>Já teve alguma lesão?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="checkbox" name="lesions" value="Joelho" /> Joelho</label>
+      <label class="choice"><input type="checkbox" name="lesions" value="Coluna" /> Coluna</label>
+      <label class="choice"><input type="checkbox" name="lesions" value="Ombro" /> Ombro</label>
+      <label class="choice"><input type="checkbox" name="lesions" value="Tornozelo" /> Tornozelo</label>
+      <label class="choice"><input type="checkbox" name="lesions" value="Outro" /> Outro</label>
+    </div>
+    <label>
+      Outra lesão
+      <input type="text" name="lesion_other" />
+    </label>
+  </div>
+
+  <div class="option-group">
+    <p>Sente dores durante treino ou no dia a dia?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="has_pain" value="Não" /> Não</label>
+      <label class="choice"><input type="radio" name="has_pain" value="Sim" /> Sim</label>
+    </div>
+    <label>
+      Se sim, onde?
+      <input type="text" name="pain_where" />
+    </label>
+  </div>
+
+  <div class="option-group">
+    <p>Possui alguma condição:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="checkbox" name="health_conditions" value="Hipertensão" /> Hipertensão</label>
+      <label class="choice"><input type="checkbox" name="health_conditions" value="Diabetes" /> Diabetes</label>
+      <label class="choice"><input type="checkbox" name="health_conditions" value="Problema na coluna" /> Problema na coluna</label>
+      <label class="choice"><input type="checkbox" name="health_conditions" value="Cardíaco" /> Cardíaco</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Faz uso de medicamentos?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="uses_medication" value="Não" /> Não</label>
+      <label class="choice"><input type="radio" name="uses_medication" value="Sim" /> Sim</label>
+    </div>
+    <label>
+      Quais?
+      <input type="text" name="medication_list" />
+    </label>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>6. Rotina</h3>
+  <div class="option-group">
+    <p>Horário preferido para treino:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="preferred_time" value="Manhã" /> Manhã</label>
+      <label class="choice"><input type="radio" name="preferred_time" value="Tarde" /> Tarde</label>
+      <label class="choice"><input type="radio" name="preferred_time" value="Noite" /> Noite</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Horas de sono por noite:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="sleep_range" value="Menos de 5h" /> Menos de 5h</label>
+      <label class="choice"><input type="radio" name="sleep_range" value="6h" /> 6h</label>
+      <label class="choice"><input type="radio" name="sleep_range" value="7h" /> 7h</label>
+      <label class="choice"><input type="radio" name="sleep_range" value="8h ou mais" /> 8h ou mais</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Tipo de trabalho:</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="job_type" value="Sentado" /> Sentado</label>
+      <label class="choice"><input type="radio" name="job_type" value="Em pé" /> Em pé</label>
+      <label class="choice"><input type="radio" name="job_type" value="Muito ativo" /> Muito ativo</label>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>7. Alimentação</h3>
+  <div class="option-group">
+    <p>Segue alguma dieta?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="follows_diet" value="Sim" /> Sim</label>
+      <label class="choice"><input type="radio" name="follows_diet" value="Não" /> Não</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Já foi acompanhada por nutricionista?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="had_nutritionist" value="Sim" /> Sim</label>
+      <label class="choice"><input type="radio" name="had_nutritionist" value="Não" /> Não</label>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Quantas refeições faz por dia?</p>
+    <div class="option-grid">
+      <label class="choice"><input type="radio" name="meals_per_day" value="3" /> 3</label>
+      <label class="choice"><input type="radio" name="meals_per_day" value="4" /> 4</label>
+      <label class="choice"><input type="radio" name="meals_per_day" value="5 ou mais" /> 5 ou mais</label>
+    </div>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>8. Avaliação física</h3>
+  <label class="full">
+    Envio de fotos (opcional): Frente / Lado / Costas
+    <input type="text" name="photos_note" placeholder="Informe se vai enviar as fotos" />
+  </label>
+
+  <% if (publicMode) { %>
+    <div class="form-grid form-2cols">
+      <label>
+        Foto de frente (opcional)
+        <input type="file" name="photo_front" accept="image/*" data-photo-input="front" />
+        <img class="upload-preview" data-photo-preview="front" alt="Prévia foto frente" hidden />
+      </label>
+      <label>
+        Foto de lado (opcional)
+        <input type="file" name="photo_side" accept="image/*" data-photo-input="side" />
+        <img class="upload-preview" data-photo-preview="side" alt="Prévia foto lado" hidden />
+      </label>
+      <label class="full">
+        Foto de costas (opcional)
+        <input type="file" name="photo_back" accept="image/*" data-photo-input="back" />
+        <img class="upload-preview" data-photo-preview="back" alt="Prévia foto costas" hidden />
+      </label>
+    </div>
+  <% } %>
+
+  <div class="form-grid form-2cols">
+    <label>
+      Cintura
+      <input type="text" name="measure_waist" />
+    </label>
+    <label>
+      Abdômen
+      <input type="text" name="measure_abdomen" />
+    </label>
+    <label>
+      Quadril
+      <input type="text" name="measure_hip" />
+    </label>
+    <label>
+      Coxa
+      <input type="text" name="measure_thigh" />
+    </label>
+    <label>
+      Braço
+      <input type="text" name="measure_arm" />
+    </label>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>9. Comprometimento</h3>
+  <p>De 0 a 10, qual seu nível de comprometimento com o resultado?</p>
+  <div class="option-grid commitment-grid">
+    <label class="choice"><input type="radio" name="commitment_level" value="0" /> 0</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="1" /> 1</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="2" /> 2</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="3" /> 3</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="4" /> 4</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="5" /> 5</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="6" /> 6</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="7" /> 7</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="8" /> 8</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="9" /> 9</label>
+    <label class="choice"><input type="radio" name="commitment_level" value="10" /> 10</label>
+  </div>
+</div>
+
+<div class="form-section">
+  <h3>10. Informações complementares</h3>
+  <div class="form-grid form-2cols">
+    <label>
+      Altura (cm)
+      <input type="number" step="0.1" name="height_cm" value="<%= student?.height_cm || '' %>" />
+    </label>
+    <label>
+      Peso inicial (kg)
+      <input type="number" step="0.1" name="initial_weight_kg" value="<%= student?.initial_weight_kg || '' %>" />
+    </label>
+    <label>
+      Ingestão de água (litros/dia)
+      <input type="number" step="0.1" name="water_intake_liters" value="<%= student?.water_intake_liters || '' %>" />
+    </label>
+    <label>
+      Alergias
+      <input type="text" name="allergies" value="<%= student?.allergies || '' %>" />
+    </label>
+    <label class="full">
+      Histórico de cirurgias
+      <textarea name="surgeries_history" rows="2"><%= student?.surgeries_history || '' %></textarea>
+    </label>
+    <label class="full">
+      Restrições físicas
+      <textarea name="physical_restrictions" rows="2"><%= student?.physical_restrictions || '' %></textarea>
+    </label>
+    <label class="full">
+      Informações complementares (JSON ou texto livre)
+      <textarea name="extra_json" rows="4" placeholder='{"avaliacao_postural": "...", "outras_info": "..."}'><%= student?.extra_json || '' %></textarea>
+    </label>
+    <label class="full">
+      Observações
+      <textarea name="notes" rows="3"><%= student?.notes || '' %></textarea>
+    </label>
+  </div>
+</div>

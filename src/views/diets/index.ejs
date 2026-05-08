@@ -1,0 +1,80 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <h1>Dieta do Aluno</h1>
+  <%- include('../partials/flashes') %>
+
+  <section class="card">
+    <form method="get" action="/diets" class="form-grid">
+      <label>
+        Selecionar aluno
+        <select name="student_id" required>
+          <option value="">-- selecione --</option>
+          <% students.forEach(function(s) { %>
+            <option value="<%= s.id %>" <%= selectedStudent && selectedStudent.id === s.id ? 'selected' : '' %>>
+              <%= s.full_name %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+      <button class="btn" type="submit">Carregar</button>
+    </form>
+  </section>
+
+  <% if (selectedStudent) { %>
+    <section class="card">
+      <h2>Nova dieta - <%= selectedStudent.full_name %></h2>
+      <form method="post" action="/diets" class="form-grid form-2cols">
+        <input type="hidden" name="student_id" value="<%= selectedStudent.id %>" />
+        <label>
+          Nome da dieta *
+          <input type="text" name="diet_name" required placeholder="Dieta cutting maio" />
+        </label>
+        <label>
+          Início
+          <input type="date" name="start_date" />
+        </label>
+        <label>
+          Calorias estimadas
+          <input type="number" name="estimated_calories" min="0" />
+        </label>
+        <label class="full">
+          Refeições (JSON/texto com horários e itens) *
+          <textarea name="meals_json" rows="6" required placeholder='[{"horario":"07:00","refeicao":"Café","itens":"ovos + aveia"}]'></textarea>
+        </label>
+        <label class="full">
+          Observações
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <button class="btn" type="submit">Salvar dieta</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Dietas cadastradas</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Início</th>
+            <th>Calorias</th>
+            <th>Refeições</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% diets.forEach(function(diet) { %>
+            <tr>
+              <td><%= diet.diet_name %></td>
+              <td><%= diet.start_date || '-' %></td>
+              <td><%= diet.estimated_calories || '-' %></td>
+              <td><pre><%= diet.meals_json %></pre></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

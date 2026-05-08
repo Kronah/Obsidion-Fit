@@ -1,0 +1,38 @@
+<%- include('../partials/head') %>
+
+<header class="public-topbar">
+  <div class="brand">Obsidion Fit</div>
+  <a class="btn ghost" href="/login">Login</a>
+</header>
+
+<main class="landing">
+  <section class="hero">
+    <p class="eyebrow">Cadastro Online do Aluno</p>
+    <h1>Preencha sua ficha completa para iniciarmos seu treino com segurança.</h1>
+    <p>
+      Este formulário reúne os dados necessários para avaliação física, planejamento de treino,
+      evolução e prescrição de dieta personalizada.
+    </p>
+  </section>
+
+  <section class="card intake-card">
+    <%- include('../partials/flashes') %>
+    <form method="post" action="<%= action %>" class="form-grid form-2cols" enctype="multipart/form-data">
+      <%- include('./_fields', { student: student, publicMode: true }) %>
+
+      <label class="checkbox full">
+        <input type="checkbox" name="consent_terms" value="1" required />
+        Li e concordo com os termos de acompanhamento físico.
+      </label>
+      <label class="checkbox full">
+        <input type="checkbox" name="lgpd_consent" value="1" required />
+        Autorizo o tratamento dos meus dados para acompanhamento profissional (LGPD).
+      </label>
+
+      <button class="btn" type="submit">Enviar Cadastro</button>
+    </form>
+  </section>
+</main>
+
+<script src="/js/photo-preview.js"></script>
+<%- include('../partials/footer') %>

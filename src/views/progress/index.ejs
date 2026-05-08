@@ -1,0 +1,82 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <h1>Acompanhar Aluno</h1>
+  <%- include('../partials/flashes') %>
+
+  <section class="card">
+    <form method="get" action="/progress" class="form-grid">
+      <label>
+        Selecionar aluno
+        <select name="student_id" required>
+          <option value="">-- selecione --</option>
+          <% students.forEach(function(s) { %>
+            <option value="<%= s.id %>" <%= selectedStudent && selectedStudent.id === s.id ? 'selected' : '' %>>
+              <%= s.full_name %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+      <button class="btn" type="submit">Carregar histórico</button>
+    </form>
+  </section>
+
+  <% if (selectedStudent) { %>
+    <section class="card">
+      <h2>Nova evolução - <%= selectedStudent.full_name %></h2>
+      <form method="post" action="/progress" class="form-grid form-2cols">
+        <input type="hidden" name="student_id" value="<%= selectedStudent.id %>" />
+        <label>
+          Data *
+          <input type="date" name="entry_date" required />
+        </label>
+        <label>
+          Peso (kg)
+          <input type="number" step="0.1" name="weight_kg" />
+        </label>
+        <label class="full">
+          Medidas (JSON ou texto)
+          <textarea name="measurements_json" rows="3" placeholder='{"cintura":80, "quadril":95}'></textarea>
+        </label>
+        <label class="full">
+          Carga / Performance
+          <textarea name="load_notes" rows="2"></textarea>
+        </label>
+        <label class="full">
+          Observações
+          <textarea name="notes" rows="2"></textarea>
+        </label>
+        <button class="btn" type="submit">Registrar evolução</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Histórico</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Peso</th>
+            <th>Medidas</th>
+            <th>Carga</th>
+            <th>Observações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% entries.forEach(function(entry) { %>
+            <tr>
+              <td><%= entry.entry_date %></td>
+              <td><%= entry.weight_kg || '-' %></td>
+              <td><pre><%= entry.measurements_json || '-' %></pre></td>
+              <td><%= entry.load_notes || '-' %></td>
+              <td><%= entry.notes || '-' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

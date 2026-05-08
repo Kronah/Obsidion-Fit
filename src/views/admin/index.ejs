@@ -1,0 +1,58 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <h1>Admin - Profissionais</h1>
+  <%- include('../partials/flashes') %>
+
+  <section class="card">
+    <h2>Cadastrar novo profissional</h2>
+    <form method="post" action="/admin/professionals" class="form-grid form-2cols">
+      <label>
+        Nome completo
+        <input type="text" name="full_name" required />
+      </label>
+      <label>
+        Usuário
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Senha
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" name="is_admin" value="1" />
+        Permissão de administrador
+      </label>
+      <button class="btn" type="submit">Cadastrar</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Usuários cadastrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Usuário</th>
+          <th>Admin</th>
+          <th>Criado em</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% professionals.forEach(function(p) { %>
+          <tr>
+            <td><%= p.id %></td>
+            <td><%= p.full_name %></td>
+            <td><%= p.username %></td>
+            <td><%= p.is_admin ? 'Sim' : 'Não' %></td>
+            <td><%= p.created_at %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

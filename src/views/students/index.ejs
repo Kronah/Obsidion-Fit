@@ -1,0 +1,44 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<main class="container">
+  <div class="title-row">
+    <h1>Cadastro de Alunos</h1>
+    <a class="btn" href="/students/new">Novo Aluno</a>
+  </div>
+  <%- include('../partials/flashes') %>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>Contato</th>
+          <th>Cidade</th>
+          <th>Objetivo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% students.forEach(function(student) { %>
+          <tr>
+            <td><%= student.id %></td>
+            <td><%= student.full_name %></td>
+            <td><%= student.phone || '-' %></td>
+            <td><%= student.address_city || '-' %></td>
+            <td><%= student.goal || '-' %></td>
+            <td class="actions">
+              <a class="btn ghost" href="/students/<%= student.id %>/edit">Editar</a>
+              <form method="post" action="/students/<%= student.id %>/delete" onsubmit="return confirm('Excluir aluno?')">
+                <button class="btn danger" type="submit">Excluir</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

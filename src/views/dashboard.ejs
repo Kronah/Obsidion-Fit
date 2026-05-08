@@ -1,0 +1,28 @@
+<%- include('partials/head') %>
+<%- include('partials/nav') %>
+
+<main class="container">
+  <h1>Painel Principal</h1>
+  <%- include('partials/flashes') %>
+
+  <section class="stats-grid">
+    <article class="card">
+      <h2>Alunos</h2>
+      <p><%= totals.students %></p>
+    </article>
+    <article class="card">
+      <h2>Evoluções</h2>
+      <p><%= totals.progress %></p>
+    </article>
+    <article class="card">
+      <h2>Treinos</h2>
+      <p><%= totals.workouts %></p>
+    </article>
+    <article class="card">
+      <h2>Dietas</h2>
+      <p><%= totals.diets %></p>
+    </article>
+  </section>
+</main>
+
+<%- include('partials/footer') %>
