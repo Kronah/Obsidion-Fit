@@ -65,17 +65,18 @@ async function buildPoolConfigs() {
     );
   }
 
-  return userCandidates.map((user) => ({
-    user,
-    password: decodeURIComponent(parsed.password),
-    host: originalHost,
-    port: parsed.port ? Number(parsed.port) : 5432,
-    database: decodeURIComponent(parsed.pathname.replace(/^\//, "")),
-    ssl: getSslConfig(),
-    lookup(hostname, options, callback) {
-      dns.lookup(hostname, { ...options, family: 4 }, callback);
-    },
-  }));
+  return userCandidates.map((user) => {
+    const userUrl = new URL(DATABASE_URL);
+    userUrl.username = user;
+
+    return {
+      connectionString: userUrl.toString(),
+      ssl: getSslConfig(),
+      lookup(hostname, options, callback) {
+        dns.lookup(hostname, { ...options, family: 4 }, callback);
+      },
+    };
+  });
 }
 
 async function ensurePool() {
@@ -85,11 +86,12 @@ async function ensurePool() {
 
     for (const config of configs) {
       const candidatePool = new Pool(config);
+      const activeUser = new URL(config.connectionString).username;
 
       try {
         await candidatePool.query("SELECT 1");
         pool = candidatePool;
-        console.log(`[DB] Conexao com pooler estabelecida usando usuario: ${config.user}`);
+        console.log(`[DB] Conexao com pooler estabelecida usando usuario: ${activeUser}`);
         break;
       } catch (error) {
         lastError = error;
@@ -99,7 +101,7 @@ async function ensurePool() {
           throw error;
         }
 
-        console.warn(`[DB] Usuario ${config.user} rejeitado pelo pooler. Tentando proximo candidato...`);
+        console.warn(`[DB] Usuario ${activeUser} rejeitado pelo pooler. Tentando proximo candidato...`);
       }
     }
 
